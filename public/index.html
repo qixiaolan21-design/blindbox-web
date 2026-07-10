@@ -308,7 +308,7 @@
     <script>
         let currentUser = null;
         
-        // 登录
+        // 登录 - 只输入ID，从Excel匹配
         async function login() {
             const userId = document.getElementById('userId').value.trim();
             if (!userId) {
@@ -317,31 +317,15 @@
             }
             
             try {
-                // 先尝试获取用户
+                // 从服务器获取用户（服务器会从Excel匹配）
                 let res = await fetch(`/api/users/${userId}`);
-                let user;
                 
-                if (res.ok) {
-                    user = await res.json();
-                } else {
-                    // 用户不存在，创建新用户
-                    const name = prompt('首次登录，请输入您的姓名：');
-                    if (!name) return;
-                    
-                    res = await fetch('/api/users', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id: userId, name, gpa: 0 })
-                    });
-                    
-                    if (!res.ok) {
-                        alert('创建用户失败');
-                        return;
-                    }
-                    
-                    const data = await res.json();
-                    user = data.user;
+                if (!res.ok) {
+                    alert('未找到该用户，请检查精网号是否正确');
+                    return;
                 }
+                
+                const user = await res.json();
                 
                 currentUser = user;
                 localStorage.setItem('blindboxUserId', userId);

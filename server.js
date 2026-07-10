@@ -146,7 +146,7 @@ app.get('/api/users/:id', (req, res) => {
     res.json(user);
 });
 
-// 添加/更新用户
+// 添加/更新用户（仅用于更新抽奖记录）
 app.post('/api/users', (req, res) => {
     const { id, name, gpa } = req.body;
     if (!id || !name) {
@@ -172,6 +172,12 @@ app.post('/api/users', (req, res) => {
     
     saveUsers(users);
     res.json({ success: true, user: userData });
+});
+
+// 从Excel重新加载用户数据
+app.get('/api/reload', (req, res) => {
+    const users = loadUsersFromExcel();
+    res.json({ success: true, count: users.length });
 });
 
 // 盲盒抽奖
