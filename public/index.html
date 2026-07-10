@@ -284,6 +284,134 @@
         .gift-text {
             color: #666;
         }
+        
+        /* 管理员面板 */
+        .admin-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+        }
+        .admin-btn:hover {
+            opacity: 0.9;
+        }
+        
+        /* 管理员统计卡片 */
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .admin-stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+        .admin-stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .admin-stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        /* 用户列表 */
+        .user-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .user-item {
+            display: grid;
+            grid-template-columns: 1fr 80px 80px;
+            gap: 10px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .user-item-name {
+            font-weight: bold;
+            color: #333;
+        }
+        .user-item-id {
+            font-size: 12px;
+            color: #999;
+        }
+        .user-item-gpa {
+            text-align: right;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        .user-item-drawn {
+            text-align: right;
+            font-weight: bold;
+            color: #e67e22;
+        }
+        
+        /* 抽奖记录列表 */
+        .record-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .record-item {
+            display: grid;
+            grid-template-columns: 1fr 60px 100px;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            align-items: center;
+            font-size: 14px;
+        }
+        .record-user {
+            color: #333;
+        }
+        .record-gpa {
+            text-align: right;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        .record-time {
+            text-align: right;
+            color: #999;
+            font-size: 12px;
+        }
+        
+        /* 标签页 */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #666;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
         }
         
         .stats {
@@ -473,6 +601,11 @@
             </div>
         </div>
         
+        <!-- 管理员按钮（仅管理员可见） -->
+        <button id="adminBtn" class="admin-btn hidden" onclick="openAdminModal()">
+            👑 管理员面板 - 查看所有用户抽奖情况
+        </button>
+        
         <!-- 新手礼包按钮 -->
         <button id="newbieBtn" class="newbie-btn hidden" onclick="openNewbieModal()">
             欢迎新会员加入绩点系统，新手礼包已备好
@@ -524,6 +657,53 @@
             <h3 style="text-align: center; margin-bottom: 15px;">📜 抽奖记录</h3>
             <div class="history-list" id="historyList">
                 <div style="text-align: center; color: #999;">暂无记录</div>
+            </div>
+        </div>
+        
+        <!-- 管理员面板弹窗 -->
+        <div id="adminModal" class="modal-overlay" onclick="closeAdminModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
+                <div class="close-btn" onclick="closeAdminModal()">&times;</div>
+                <div class="modal-header">
+                    <div class="modal-title">👑 管理员面板</div>
+                    <div class="modal-subtitle">查看所有用户抽奖情况和绩点统计</div>
+                </div>
+                
+                <!-- 统计卡片 -->
+                <div class="admin-stats" id="adminStats">
+                    <div class="admin-stat-box">
+                        <div class="admin-stat-value" id="statTotalUsers">0</div>
+                        <div class="admin-stat-label">总用户数</div>
+                    </div>
+                    <div class="admin-stat-box">
+                        <div class="admin-stat-value" id="statTotalDraws">0</div>
+                        <div class="admin-stat-label">总抽奖次数</div>
+                    </div>
+                    <div class="admin-stat-box">
+                        <div class="admin-stat-value" id="statTotalGpa">0</div>
+                        <div class="admin-stat-label">总发放绩点</div>
+                    </div>
+                    <div class="admin-stat-box">
+                        <div class="admin-stat-value" id="statTodayDraws">0</div>
+                        <div class="admin-stat-label">今日抽奖</div>
+                    </div>
+                </div>
+                
+                <!-- 标签页 -->
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('users')" id="tabUsers">用户列表</button>
+                    <button class="tab" onclick="switchTab('records')" id="tabRecords">抽奖记录</button>
+                </div>
+                
+                <!-- 用户列表 -->
+                <div id="adminUsersList" class="user-list">
+                    <div style="text-align: center; color: #999; padding: 20px;">加载中...</div>
+                </div>
+                
+                <!-- 抽奖记录 -->
+                <div id="adminRecordsList" class="record-list hidden">
+                    <div style="text-align: center; color: #999; padding: 20px;">加载中...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -646,6 +826,9 @@
             }
         }
         
+        // 管理员ID
+        const ADMIN_ID = '90010769';
+        
         // 更新显示
         function updateDisplay() {
             if (!currentUser) return;
@@ -658,6 +841,86 @@
             
             document.getElementById('statDrawn').textContent = currentUser.drawnGpa || 0;
             document.getElementById('statCount').textContent = currentUser.drawCount || 0;
+            
+            // 如果是管理员，显示管理员按钮
+            if (currentUser.id === ADMIN_ID) {
+                document.getElementById('adminBtn').classList.remove('hidden');
+            }
+        }
+        
+        // 打开管理员面板
+        async function openAdminModal() {
+            document.getElementById('adminModal').classList.add('show');
+            await loadAdminData();
+        }
+        
+        // 关闭管理员面板
+        function closeAdminModal(event) {
+            if (!event || event.target.id === 'adminModal') {
+                document.getElementById('adminModal').classList.remove('show');
+            }
+        }
+        
+        // 切换标签页
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            
+            if (tab === 'users') {
+                document.getElementById('adminUsersList').classList.remove('hidden');
+                document.getElementById('adminRecordsList').classList.add('hidden');
+            } else {
+                document.getElementById('adminUsersList').classList.add('hidden');
+                document.getElementById('adminRecordsList').classList.remove('hidden');
+            }
+        }
+        
+        // 加载管理员数据
+        async function loadAdminData() {
+            try {
+                // 加载统计数据
+                const statsRes = await fetch(`/api/admin/stats?userId=${currentUser.id}`);
+                if (statsRes.ok) {
+                    const stats = await statsRes.json();
+                    document.getElementById('statTotalUsers').textContent = stats.totalUsers;
+                    document.getElementById('statTotalDraws').textContent = stats.totalDraws;
+                    document.getElementById('statTotalGpa').textContent = stats.totalGpaGiven;
+                    document.getElementById('statTodayDraws').textContent = stats.todayDraws;
+                }
+                
+                // 加载用户列表
+                const usersRes = await fetch(`/api/admin/users?userId=${currentUser.id}`);
+                if (usersRes.ok) {
+                    const users = await usersRes.json();
+                    const usersList = document.getElementById('adminUsersList');
+                    usersList.innerHTML = users.map(u => `
+                        <div class="user-item">
+                            <div>
+                                <div class="user-item-name">${u.name}</div>
+                                <div class="user-item-id">${u.id}</div>
+                            </div>
+                            <div class="user-item-gpa">${u.gpa || 0}</div>
+                            <div class="user-item-drawn">+${u.drawnGpa || 0}</div>
+                        </div>
+                    `).join('');
+                }
+                
+                // 加载抽奖记录
+                const recordsRes = await fetch(`/api/history?userId=${currentUser.id}`);
+                if (recordsRes.ok) {
+                    const records = await recordsRes.json();
+                    const recordsList = document.getElementById('adminRecordsList');
+                    recordsList.innerHTML = records.slice(0, 100).map(r => `
+                        <div class="record-item">
+                            <div class="record-user">${r.userName}</div>
+                            <div class="record-gpa">+${r.prizeGpa}</div>
+                            <div class="record-time">${new Date(r.timestamp).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('加载管理员数据失败:', err);
+            }
         }
         
         // 抽奖

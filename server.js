@@ -294,10 +294,68 @@ app.get('/api/history/:userId', (req, res) => {
     res.json(userHistory);
 });
 
-// 获取所有历史（管理员）
+// 管理员ID
+const ADMIN_ID = '90010769';
+
+// 检查是否是管理员
+function isAdmin(userId) {
+    return userId === ADMIN_ID;
+}
+
+// 获取所有历史（管理员权限）
 app.get('/api/history', (req, res) => {
+    const userId = req.query.userId;
+    if (!isAdmin(userId)) {
+        return res.status(403).json({ error: '无权限' });
+    }
+    
     const history = loadHistory();
     res.json(history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+});
+
+// 获取所有用户数据（管理员权限）
+app.get('/api/admin/users', (req, res) => {
+    const userId = req.query.userId;
+    if (!isAdmin(userId)) {
+        return res.status(403).json({ error: '无权限' });
+    }
+    
+    const users = loadUsers();
+    // 计算每个用户的总余额
+    const usersWithBalance = users.map(u => ({
+        ...u,
+        balance: (u.gpa || 0) + (u.drawnGpa || 0)
+    }));
+    
+    res.json(usersWithBalance);
+});
+
+// 获取统计数据（管理员权限）
+app.get('/api/admin/stats', (req, res) => {
+    const userId = req.query.userId;
+    if (!isAdmin(userId)) {
+        return res.status(403).json({ error: '无权限' });
+    }
+    
+    const users = loadUsers();
+    const history = loadHistory();
+    
+    // 统计信息
+    const stats = {
+        totalUsers: users.length,
+        totalDraws: history.length,
+        totalGpaGiven: history.reduce((sum, h) => sum + h.prizeGpa, 0),
+        todayDraws: history.filter(h => {
+            const today = new Date().toISOString().split('T')[0];
+            return h.timestamp.startsWith(today);
+        }).length,
+        topUsers: users
+            .map(u => ({ ...u, totalEarned: u.drawnGpa || 0 }))
+            .sort((a, b) => b.totalEarned - a.totalEarned)
+            .slice(0, 10)
+    };
+    
+    res.json(stats);
 });
 
 // 健康检查
