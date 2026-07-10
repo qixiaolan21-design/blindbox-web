@@ -606,10 +606,34 @@
             👑 管理员面板 - 查看所有用户抽奖情况
         </button>
         
-        <!-- 新手礼包按钮 -->
-        <button id="newbieBtn" class="newbie-btn hidden" onclick="openNewbieModal()">
-            欢迎新会员加入绩点系统，新手礼包已备好
-        </button>
+        <!-- 新手礼包区域（直接展示） -->
+        <div id="newbieSection" class="card hidden">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 20px; font-weight: bold; color: #e67e22; margin-bottom: 5px;">🎁 欢迎新会员加入绩点系统</div>
+                <div style="color: #666; font-size: 14px;">新手礼包已备好，点击盲盒领取吉利绩点！</div>
+            </div>
+            <div class="newbie-boxes">
+                <div class="newbie-box newbie-box1" onclick="openNewbieBox(0)">
+                    <div class="box-icon">🎁</div>
+                    <div class="box-label">福气包</div>
+                    <div class="box-prize"></div>
+                </div>
+                <div class="newbie-box newbie-box2" onclick="openNewbieBox(1)">
+                    <div class="box-icon">🧧</div>
+                    <div class="box-label">财运包</div>
+                    <div class="box-prize"></div>
+                </div>
+                <div class="newbie-box newbie-box3" onclick="openNewbieBox(2)">
+                    <div class="box-icon">💎</div>
+                    <div class="box-label">幸运包</div>
+                    <div class="box-prize"></div>
+                </div>
+            </div>
+            <div id="giftResult" class="gift-result">
+                <div class="gift-total">+<span id="giftTotal">0</span> 绩点</div>
+                <div class="gift-text">恭喜获得新手礼包！快去抽奖吧～</div>
+            </div>
+        </div>
         
         <!-- 提示信息 -->
         <div id="tipCard" class="card hidden">
@@ -620,37 +644,7 @@
             </div>
         </div>
         
-        <!-- 新手礼包弹窗 -->
-        <div id="newbieModal" class="modal-overlay" onclick="closeNewbieModal(event)">
-            <div class="modal-content" onclick="event.stopPropagation()">
-                <div class="close-btn" onclick="closeNewbieModal()">&times;</div>
-                <div class="modal-header">
-                    <div class="modal-title">🎁 新手大礼包</div>
-                    <div class="modal-subtitle">欢迎新会员！点击盲盒领取你的专属礼包</div>
-                </div>
-                <div class="newbie-boxes">
-                    <div class="newbie-box newbie-box1" onclick="openNewbieBox(0)">
-                        <div class="box-icon">🎁</div>
-                        <div class="box-label">福气包</div>
-                        <div class="box-prize"></div>
-                    </div>
-                    <div class="newbie-box newbie-box2" onclick="openNewbieBox(1)">
-                        <div class="box-icon">🧧</div>
-                        <div class="box-label">财运包</div>
-                        <div class="box-prize"></div>
-                    </div>
-                    <div class="newbie-box newbie-box3" onclick="openNewbieBox(2)">
-                        <div class="box-icon">💎</div>
-                        <div class="box-label">幸运包</div>
-                        <div class="box-prize"></div>
-                    </div>
-                </div>
-                <div id="giftResult" class="gift-result">
-                    <div class="gift-total">+<span id="giftTotal">0</span> 绩点</div>
-                    <div class="gift-text">恭喜获得新手礼包！快去抽奖吧～</div>
-                </div>
-            </div>
-        </div>
+
         
         <!-- 历史记录 -->
         <div id="historyCard" class="card hidden">
@@ -754,7 +748,7 @@
                 if (res.ok) {
                     const data = await res.json();
                     if (!data.hasReceived) {
-                        document.getElementById('newbieBtn').classList.remove('hidden');
+                        document.getElementById('newbieSection').classList.remove('hidden');
                     }
                 }
             } catch (err) {
@@ -772,29 +766,6 @@
         ];
         let openedBoxes = [false, false, false];
         let totalGiftGpa = 0;
-        
-        // 打开新手礼包弹窗
-        function openNewbieModal() {
-            document.getElementById('newbieModal').classList.add('show');
-            // 重置状态
-            openedBoxes = [false, false, false];
-            totalGiftGpa = 0;
-            document.getElementById('giftResult').classList.remove('show');
-            
-            // 重置盲盒显示
-            const boxes = document.querySelectorAll('.newbie-box');
-            boxes.forEach((box, index) => {
-                box.classList.remove('opened');
-                box.querySelector('.box-prize').textContent = '';
-            });
-        }
-        
-        // 关闭新手礼包弹窗
-        function closeNewbieModal(event) {
-            if (!event || event.target.id === 'newbieModal') {
-                document.getElementById('newbieModal').classList.remove('show');
-            }
-        }
         
         // 打开新手盲盒
         async function openNewbieBox(index) {
@@ -830,8 +801,8 @@
                     });
                     
                     if (res.ok) {
-                        // 领取成功，隐藏新手礼包按钮
-                        document.getElementById('newbieBtn').classList.add('hidden');
+                        // 领取成功，隐藏新手礼包区域
+                        document.getElementById('newbieSection').classList.add('hidden');
                         
                         // 更新显示
                         currentUser.drawnGpa = (currentUser.drawnGpa || 0) + totalGiftGpa;
