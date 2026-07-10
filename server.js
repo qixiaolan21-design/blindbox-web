@@ -29,9 +29,9 @@ function loadUsersFromExcel() {
             const data = XLSX.utils.sheet_to_json(worksheet);
             
             const users = data.map(row => ({
-                id: String(row['精网号'] || row['ID'] || '').trim(),
-                name: String(row['姓名'] || row['名字'] || '').trim(),
-                gpa: parseInt(row['绩点'] || row['总绩点'] || row['GPA'] || 0),
+                id: String(row['登录账号'] || row['精网号'] || row['ID'] || '').trim(),
+                name: String(row['用户名称'] || row['姓名'] || row['名字'] || '').trim(),
+                gpa: parseInt(row['当前绩点余额'] || row['绩点'] || row['总绩点'] || row['GPA'] || 0),
                 drawnGpa: 0,
                 drawCount: 0
             })).filter(u => u.id && u.name);
