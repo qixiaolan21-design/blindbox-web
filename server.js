@@ -45,15 +45,43 @@ function loadUsersFromExcel() {
     return [];
 }
 
-// 加载用户数据（优先从Excel，否则从JSON）
+// 从JSON加载用户数据（部署到Render用）
+function loadUsersFromJSON() {
+    try {
+        const jsonPath = path.join(__dirname, 'data', 'users.json');
+        if (fs.existsSync(jsonPath)) {
+            const data = fs.readFileSync(jsonPath, 'utf-8');
+            const users = JSON.parse(data).map(u => ({
+                id: u.id,
+                name: u.name,
+                gpa: u.gpa || 0,
+                drawnGpa: 0,
+                drawCount: 0
+            }));
+            console.log(`📊 从JSON加载了 ${users.length} 位用户`);
+            return users;
+        }
+    } catch (err) {
+        console.error('读取JSON失败:', err);
+    }
+    return [];
+}
+
+// 加载用户数据（优先从JSON，否则从Excel，最后从DATA_FILE）
 function loadUsers() {
-    // 首先尝试从Excel加载
+    // 首先尝试从JSON加载（部署环境）
+    const jsonUsers = loadUsersFromJSON();
+    if (jsonUsers.length > 0) {
+        return jsonUsers;
+    }
+    
+    // 其次尝试从Excel加载（本地环境）
     const excelUsers = loadUsersFromExcel();
     if (excelUsers.length > 0) {
         return excelUsers;
     }
     
-    // 否则从JSON加载
+    // 最后从DATA_FILE加载（保存的抽奖记录）
     try {
         if (fs.existsSync(DATA_FILE)) {
             const data = fs.readFileSync(DATA_FILE, 'utf-8');
