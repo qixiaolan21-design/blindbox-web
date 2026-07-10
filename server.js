@@ -234,6 +234,11 @@ app.get('/api/history', (req, res) => {
     res.json(history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
 });
 
+// 健康检查
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', userCount: loadUsers().length });
+});
+
 // 页面路由
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
