@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const XLSX = require('xlsx');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,14 +10,50 @@ const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data', 'users.json');
 const HISTORY_FILE = path.join(__dirname, 'data', 'history.json');
 
+// Excel文件路径（桌面）
+const EXCEL_FILE = 'C:\\Users\\嗷呜\\Desktop\\用户绩点余额表.xlsx';
+
 // 确保数据目录存在
 const dataDir = path.join(__dirname, 'data');
 if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
 }
 
-// 加载用户数据
+// 从Excel加载用户数据
+function loadUsersFromExcel() {
+    try {
+        if (fs.existsSync(EXCEL_FILE)) {
+            const workbook = XLSX.readFile(EXCEL_FILE);
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const data = XLSX.utils.sheet_to_json(worksheet);
+            
+            const users = data.map(row => ({
+                id: String(row['精网号'] || row['ID'] || '').trim(),
+                name: String(row['姓名'] || row['名字'] || '').trim(),
+                gpa: parseInt(row['绩点'] || row['总绩点'] || row['GPA'] || 0),
+                drawnGpa: 0,
+                drawCount: 0
+            })).filter(u => u.id && u.name);
+            
+            console.log(`📊 从Excel加载了 ${users.length} 位用户`);
+            return users;
+        }
+    } catch (err) {
+        console.error('读取Excel失败:', err);
+    }
+    return [];
+}
+
+// 加载用户数据（优先从Excel，否则从JSON）
 function loadUsers() {
+    // 首先尝试从Excel加载
+    const excelUsers = loadUsersFromExcel();
+    if (excelUsers.length > 0) {
+        return excelUsers;
+    }
+    
+    // 否则从JSON加载
     try {
         if (fs.existsSync(DATA_FILE)) {
             const data = fs.readFileSync(DATA_FILE, 'utf-8');
@@ -144,7 +181,7 @@ app.post('/api/draw', (req, res) => {
         return res.status(400).json({ error: '缺少用户ID' });
     }
     
-    const users = loadUsers();
+    let users = loadUsers();
     const userIndex = users.findIndex(u => u.id === userId);
     
     if (userIndex === -1) {
@@ -154,9 +191,11 @@ app.post('/api/draw', (req, res) => {
     // 抽取奖品
     const prizeGpa = drawPrize();
     
-    // 更新用户数据
+    // 更新用户数据 - 增加已抽取绩点
     users[userIndex].drawnGpa = (users[userIndex].drawnGpa || 0) + prizeGpa;
     users[userIndex].drawCount = (users[userIndex].drawCount || 0) + 1;
+    
+    // 保存到JSON（保留抽奖记录）
     saveUsers(users);
     
     // 记录历史
@@ -169,9 +208,13 @@ app.post('/api/draw', (req, res) => {
     });
     saveHistory(history);
     
+    // 计算当前余额
+    const balance = (users[userIndex].gpa || 0) + (users[userIndex].drawnGpa || 0);
+    
     res.json({
         success: true,
         prize: prizeGpa,
+        balance: balance,
         user: users[userIndex]
     });
 });

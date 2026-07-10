@@ -77,9 +77,32 @@
             cursor: pointer;
         }
         
+        /* 余额展示 */
+        .balance-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: white;
+        }
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        .balance-value {
+            font-size: 48px;
+            font-weight: bold;
+        }
+        .balance-unit {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+        
         .stats {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             text-align: center;
         }
@@ -93,6 +116,7 @@
             font-weight: bold;
             color: #667eea;
         }
+        .stat-value.success { color: #27ae60; }
         .stat-label {
             font-size: 12px;
             color: #999;
@@ -229,14 +253,18 @@
                 </div>
                 <button class="logout-btn" onclick="logout()">退出</button>
             </div>
+            
+            <!-- 余额展示 -->
+            <div class="balance-display">
+                <div class="balance-label">💰 当前绩点余额</div>
+                <div class="balance-value" id="balanceValue">0</div>
+                <div class="balance-unit">绩点</div>
+            </div>
+            
             <div class="stats">
                 <div class="stat-box">
-                    <div class="stat-value" id="statGpa">0</div>
-                    <div class="stat-label">当前绩点</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value" id="statDrawn" style="color: #27ae60;">0</div>
-                    <div class="stat-label">已抽取</div>
+                    <div class="stat-value success" id="statDrawn">0</div>
+                    <div class="stat-label">累计获得</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value" id="statCount" style="color: #9b59b6;">0</div>
@@ -259,23 +287,12 @@
             </div>
         </div>
         
-        <!-- 概率说明 -->
-        <div id="probCard" class="card hidden">
-            <h3 style="text-align: center; margin-bottom: 15px;">📊 抽奖概率</h3>
-            <div class="prob-table">
-                <div class="prob-item"><div class="prob-gpa">1</div><div class="prob-rate">15%</div></div>
-                <div class="prob-item"><div class="prob-gpa">2</div><div class="prob-rate">15%</div></div>
-                <div class="prob-item"><div class="prob-gpa">3</div><div class="prob-rate">12%</div></div>
-                <div class="prob-item"><div class="prob-gpa">4</div><div class="prob-rate">10%</div></div>
-                <div class="prob-item"><div class="prob-gpa">5</div><div class="prob-rate">10%</div></div>
-                <div class="prob-item"><div class="prob-gpa">6</div><div class="prob-rate">8%</div></div>
-                <div class="prob-item"><div class="prob-gpa">7</div><div class="prob-rate">7%</div></div>
-                <div class="prob-item"><div class="prob-gpa">8</div><div class="prob-rate">6%</div></div>
-                <div class="prob-item"><div class="prob-gpa">9</div><div class="prob-rate">5%</div></div>
-                <div class="prob-item"><div class="prob-gpa">10</div><div class="prob-rate">4%</div></div>
-                <div class="prob-item"><div class="prob-gpa">12</div><div class="prob-rate">3%</div></div>
-                <div class="prob-item"><div class="prob-gpa">15</div><div class="prob-rate">2%</div></div>
-                <div class="prob-item" style="grid-column: span 2;"><div class="prob-gpa">20</div><div class="prob-rate">1%</div></div>
+        <!-- 提示信息 -->
+        <div id="tipCard" class="card hidden">
+            <div style="text-align: center; color: #666; padding: 10px;">
+                <div style="font-size: 24px; margin-bottom: 10px;">✨</div>
+                <div style="font-size: 16px; margin-bottom: 5px;">每次抽奖都会获得不同数量的绩点</div>
+                <div style="font-size: 14px; color: #999;">运气越好，获得的绩点越多！</div>
             </div>
         </div>
         
@@ -341,7 +358,7 @@
             document.getElementById('loginCard').classList.add('hidden');
             document.getElementById('userCard').classList.remove('hidden');
             document.getElementById('drawCard').classList.remove('hidden');
-            document.getElementById('probCard').classList.remove('hidden');
+            document.getElementById('tipCard').classList.remove('hidden');
             document.getElementById('historyCard').classList.remove('hidden');
             
             updateDisplay();
@@ -352,7 +369,11 @@
             if (!currentUser) return;
             document.getElementById('userName').textContent = currentUser.name;
             document.getElementById('userIdDisplay').textContent = currentUser.id;
-            document.getElementById('statGpa').textContent = currentUser.gpa || 0;
+            
+            // 计算余额 = 初始绩点 + 已抽取绩点
+            const balance = (currentUser.gpa || 0) + (currentUser.drawnGpa || 0);
+            document.getElementById('balanceValue').textContent = balance;
+            
             document.getElementById('statDrawn').textContent = currentUser.drawnGpa || 0;
             document.getElementById('statCount').textContent = currentUser.drawCount || 0;
         }
@@ -386,8 +407,15 @@
                         document.getElementById('resultText').textContent = data.prize;
                         result.classList.add('show');
                         
-                        currentUser = data.user;
-                        updateDisplay();
+                        // 更新用户数据
+                        currentUser.drawnGpa = data.user.drawnGpa;
+                        currentUser.drawCount = data.user.drawCount;
+                        
+                        // 更新显示 - 使用返回的余额
+                        document.getElementById('balanceValue').textContent = data.balance;
+                        document.getElementById('statDrawn').textContent = data.user.drawnGpa || 0;
+                        document.getElementById('statCount').textContent = data.user.drawCount || 0;
+                        
                         addHistory(data.prize);
                     }
                 }, 1500);
