@@ -208,6 +208,17 @@ app.get('/api/reload', (req, res) => {
     res.json({ success: true, count: users.length });
 });
 
+// 检查新手礼包是否已领取
+app.get('/api/newbie-gift/check/:userId', (req, res) => {
+    const userId = req.params.userId;
+    const history = loadHistory();
+    
+    // 检查是否领取过新手礼包
+    const hasReceived = history.some(h => h.userId === userId && h.type === 'newbie-gift');
+    
+    res.json({ hasReceived });
+});
+
 // 新手礼包领取
 app.post('/api/newbie-gift', (req, res) => {
     const { userId, gpa } = req.body;
@@ -222,12 +233,20 @@ app.post('/api/newbie-gift', (req, res) => {
         return res.status(404).json({ error: '用户不存在' });
     }
     
+    // 检查是否已领取过
+    const history = loadHistory();
+    const hasReceived = history.some(h => h.userId === userId && h.type === 'newbie-gift');
+    
+    if (hasReceived) {
+        return res.status(400).json({ error: '已经领取过新手礼包' });
+    }
+    
     // 增加新手礼包绩点
     users[userIndex].drawnGpa = (users[userIndex].drawnGpa || 0) + gpa;
+    users[userIndex].newbieGiftReceived = true;
     saveUsers(users);
     
     // 记录历史
-    const history = loadHistory();
     history.push({
         userId,
         userName: users[userIndex].name,

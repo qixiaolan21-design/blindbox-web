@@ -741,13 +741,25 @@
         }
         
         // 显示主界面
-        function showMain() {
+        async function showMain() {
             document.getElementById('loginCard').classList.add('hidden');
             document.getElementById('userCard').classList.remove('hidden');
             document.getElementById('drawCard').classList.remove('hidden');
             document.getElementById('tipCard').classList.remove('hidden');
             document.getElementById('historyCard').classList.remove('hidden');
-            document.getElementById('newbieBtn').classList.remove('hidden');
+            
+            // 检查是否已领取新手礼包
+            try {
+                const res = await fetch(`/api/newbie-gift/check/${currentUser.id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (!data.hasReceived) {
+                        document.getElementById('newbieBtn').classList.remove('hidden');
+                    }
+                }
+            } catch (err) {
+                console.error('检查新手礼包状态失败:', err);
+            }
             
             updateDisplay();
         }
@@ -808,7 +820,7 @@
                 
                 // 添加到用户绩点（调用API）
                 try {
-                    await fetch('/api/newbie-gift', {
+                    const res = await fetch('/api/newbie-gift', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
@@ -817,11 +829,22 @@
                         })
                     });
                     
-                    // 更新显示
-                    currentUser.drawnGpa = (currentUser.drawnGpa || 0) + totalGiftGpa;
-                    updateDisplay();
+                    if (res.ok) {
+                        // 领取成功，隐藏新手礼包按钮
+                        document.getElementById('newbieBtn').classList.add('hidden');
+                        
+                        // 更新显示
+                        currentUser.drawnGpa = (currentUser.drawnGpa || 0) + totalGiftGpa;
+                        updateDisplay();
+                        
+                        alert(`🎉 恭喜获得新手礼包 ${totalGiftGpa} 绩点！`);
+                    } else {
+                        const data = await res.json();
+                        alert(data.error || '领取失败');
+                    }
                 } catch (err) {
                     console.error('领取礼包失败:', err);
+                    alert('领取失败，请重试');
                 }
             }
         }
