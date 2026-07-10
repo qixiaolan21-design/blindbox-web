@@ -10,8 +10,8 @@ const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data', 'users.json');
 const HISTORY_FILE = path.join(__dirname, 'data', 'history.json');
 
-// Excel文件路径（桌面）
-const EXCEL_FILE = 'C:\\Users\\嗷呜\\Desktop\\用户绩点余额表.xlsx';
+// Excel文件路径（项目目录，部署到Render用）
+const EXCEL_FILE = path.join(__dirname, 'data', 'users.xlsx');
 
 // 确保数据目录存在
 const dataDir = path.join(__dirname, 'data');
