@@ -208,6 +208,38 @@ app.get('/api/reload', (req, res) => {
     res.json({ success: true, count: users.length });
 });
 
+// 新手礼包领取
+app.post('/api/newbie-gift', (req, res) => {
+    const { userId, gpa } = req.body;
+    if (!userId || !gpa) {
+        return res.status(400).json({ error: '缺少参数' });
+    }
+    
+    let users = loadUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+    
+    if (userIndex === -1) {
+        return res.status(404).json({ error: '用户不存在' });
+    }
+    
+    // 增加新手礼包绩点
+    users[userIndex].drawnGpa = (users[userIndex].drawnGpa || 0) + gpa;
+    saveUsers(users);
+    
+    // 记录历史
+    const history = loadHistory();
+    history.push({
+        userId,
+        userName: users[userIndex].name,
+        prizeGpa: gpa,
+        type: 'newbie-gift',
+        timestamp: new Date().toISOString()
+    });
+    saveHistory(history);
+    
+    res.json({ success: true, message: '领取成功' });
+});
+
 // 盲盒抽奖
 app.post('/api/draw', (req, res) => {
     const { userId } = req.body;

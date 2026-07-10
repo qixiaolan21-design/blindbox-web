@@ -100,6 +100,192 @@
             opacity: 0.8;
         }
         
+        /* 新手礼包按钮 */
+        .newbie-btn {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(243, 156, 18, 0.4);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .newbie-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(243, 156, 18, 0.6);
+        }
+        .newbie-btn::before {
+            content: '✨';
+            position: absolute;
+            left: 20px;
+            font-size: 24px;
+        }
+        .newbie-btn::after {
+            content: '🎁';
+            position: absolute;
+            right: 20px;
+            font-size: 24px;
+        }
+        
+        /* 新手礼包弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalPop 0.3s ease-out;
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .modal-subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+        .close-btn:hover { color: #333; }
+        
+        /* 新手盲盒 */
+        .newbie-boxes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .newbie-box {
+            aspect-ratio: 1;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border: 3px solid rgba(255,255,255,0.3);
+            position: relative;
+        }
+        .newbie-box:hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+        .newbie-box.opened {
+            cursor: default;
+            opacity: 0.7;
+        }
+        .newbie-box.opened .box-icon {
+            animation: none;
+        }
+        .newbie-box1 {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        .newbie-box2 {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+        .newbie-box3 {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+        .box-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .box-label {
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .box-prize {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: none;
+        }
+        .newbie-box.opened .box-icon,
+        .newbie-box.opened .box-label {
+            display: none;
+        }
+        .newbie-box.opened .box-prize {
+            display: block;
+        }
+        
+        /* 礼包结果 */
+        .gift-result {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        .gift-result.show {
+            display: block;
+            animation: pop 0.5s ease-out;
+        }
+        .gift-total {
+            font-size: 36px;
+            font-weight: bold;
+            color: #e67e22;
+            margin-bottom: 10px;
+        }
+        .gift-text {
+            color: #666;
+        }
+        }
+        
         .stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -287,12 +473,49 @@
             </div>
         </div>
         
+        <!-- 新手礼包按钮 -->
+        <button id="newbieBtn" class="newbie-btn hidden" onclick="openNewbieModal()">
+            欢迎新会员加入绩点系统，新手礼包已备好
+        </button>
+        
         <!-- 提示信息 -->
         <div id="tipCard" class="card hidden">
             <div style="text-align: center; color: #666; padding: 15px;">
                 <div style="font-size: 28px; margin-bottom: 10px;">✨</div>
                 <div style="font-size: 16px; margin-bottom: 5px; font-weight: bold;">每次抽奖都会获得不同数量的绩点</div>
                 <div style="font-size: 14px; color: #999;">运气越好，获得的绩点越多！</div>
+            </div>
+        </div>
+        
+        <!-- 新手礼包弹窗 -->
+        <div id="newbieModal" class="modal-overlay" onclick="closeNewbieModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="close-btn" onclick="closeNewbieModal()">&times;</div>
+                <div class="modal-header">
+                    <div class="modal-title">🎁 新手大礼包</div>
+                    <div class="modal-subtitle">欢迎新会员！点击盲盒领取你的专属礼包</div>
+                </div>
+                <div class="newbie-boxes">
+                    <div class="newbie-box newbie-box1" onclick="openNewbieBox(0)">
+                        <div class="box-icon">🎁</div>
+                        <div class="box-label">福气包</div>
+                        <div class="box-prize"></div>
+                    </div>
+                    <div class="newbie-box newbie-box2" onclick="openNewbieBox(1)">
+                        <div class="box-icon">🧧</div>
+                        <div class="box-label">财运包</div>
+                        <div class="box-prize"></div>
+                    </div>
+                    <div class="newbie-box newbie-box3" onclick="openNewbieBox(2)">
+                        <div class="box-icon">💎</div>
+                        <div class="box-label">幸运包</div>
+                        <div class="box-prize"></div>
+                    </div>
+                </div>
+                <div id="giftResult" class="gift-result">
+                    <div class="gift-total">+<span id="giftTotal">0</span> 绩点</div>
+                    <div class="gift-text">恭喜获得新手礼包！快去抽奖吧～</div>
+                </div>
             </div>
         </div>
         
@@ -344,8 +567,83 @@
             document.getElementById('drawCard').classList.remove('hidden');
             document.getElementById('tipCard').classList.remove('hidden');
             document.getElementById('historyCard').classList.remove('hidden');
+            document.getElementById('newbieBtn').classList.remove('hidden');
             
             updateDisplay();
+        }
+        
+        // 新手礼包配置（吉利数字）
+        const NEWBIE_GIFTS = [
+            { name: '福气包', values: [6, 8, 16, 18, 28, 38, 58, 66, 68, 88] },
+            { name: '财运包', values: [8, 18, 28, 38, 48, 58, 68, 78, 88, 98] },
+            { name: '幸运包', values: [16, 26, 36, 46, 56, 66, 76, 86, 96, 100] }
+        ];
+        let openedBoxes = [false, false, false];
+        let totalGiftGpa = 0;
+        
+        // 打开新手礼包弹窗
+        function openNewbieModal() {
+            document.getElementById('newbieModal').classList.add('show');
+            // 重置状态
+            openedBoxes = [false, false, false];
+            totalGiftGpa = 0;
+            document.getElementById('giftResult').classList.remove('show');
+            
+            // 重置盲盒显示
+            const boxes = document.querySelectorAll('.newbie-box');
+            boxes.forEach((box, index) => {
+                box.classList.remove('opened');
+                box.querySelector('.box-prize').textContent = '';
+            });
+        }
+        
+        // 关闭新手礼包弹窗
+        function closeNewbieModal(event) {
+            if (!event || event.target.id === 'newbieModal') {
+                document.getElementById('newbieModal').classList.remove('show');
+            }
+        }
+        
+        // 打开新手盲盒
+        async function openNewbieBox(index) {
+            if (openedBoxes[index]) return;
+            
+            openedBoxes[index] = true;
+            
+            // 随机选择一个吉利数字
+            const values = NEWBIE_GIFTS[index].values;
+            const prize = values[Math.floor(Math.random() * values.length)];
+            
+            totalGiftGpa += prize;
+            
+            // 显示奖品
+            const box = document.querySelectorAll('.newbie-box')[index];
+            box.classList.add('opened');
+            box.querySelector('.box-prize').textContent = '+' + prize;
+            
+            // 如果三个都开了，显示总计
+            if (openedBoxes.every(v => v)) {
+                document.getElementById('giftTotal').textContent = totalGiftGpa;
+                document.getElementById('giftResult').classList.add('show');
+                
+                // 添加到用户绩点（调用API）
+                try {
+                    await fetch('/api/newbie-gift', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            userId: currentUser.id, 
+                            gpa: totalGiftGpa 
+                        })
+                    });
+                    
+                    // 更新显示
+                    currentUser.drawnGpa = (currentUser.drawnGpa || 0) + totalGiftGpa;
+                    updateDisplay();
+                } catch (err) {
+                    console.error('领取礼包失败:', err);
+                }
+            }
         }
         
         // 更新显示
