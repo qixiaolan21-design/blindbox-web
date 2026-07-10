@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎁 绩点盲盒抽奖</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+        header h1 { font-size: 32px; margin-bottom: 10px; }
+        header p { opacity: 0.9; }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        /* 登录 */
+        .login-form input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .login-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn:hover { opacity: 0.9; }
+        
+        /* 用户信息 */
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .user-name { font-size: 20px; font-weight: bold; }
+        .logout-btn {
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+        .stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        /* 盲盒 */
+        .blindbox-container {
+            text-align: center;
+            padding: 20px;
+        }
+        .blindbox {
+            width: 180px;
+            height: 220px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(255,107,107,0.4);
+        }
+        .blindbox:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255,107,107,0.6);
+        }
+        .blindbox.shaking {
+            animation: shake 0.5s ease-in-out infinite;
+        }
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+        .blindbox-icon { font-size: 60px; margin-bottom: 10px; }
+        .blindbox-text {
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* 结果 */
+        .result {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        .result.show {
+            display: block;
+            animation: pop 0.5s ease-out;
+        }
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .result-gpa {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        .result-text {
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        /* 概率表 */
+        .prob-table {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            font-size: 12px;
+        }
+        .prob-item {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .prob-gpa { font-weight: bold; color: #333; }
+        .prob-rate { color: #999; font-size: 10px; }
+        
+        /* 历史记录 */
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .history-gpa {
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        .history-time {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎁 绩点盲盒抽奖</h1>
+            <p>点击盲盒，随机抽取 1-20 绩点</p>
+        </header>
+        
+        <!-- 登录 -->
+        <div id="loginCard" class="card">
+            <h3 style="text-align: center; margin-bottom: 20px;">请输入精网号</h3>
+            <div class="login-form">
+                <input type="text" id="userId" placeholder="例如: 90012345">
+                <button class="btn" onclick="login()">进入抽奖</button>
+            </div>
+        </div>
+        
+        <!-- 用户信息 -->
+        <div id="userCard" class="card hidden">
+            <div class="user-info">
+                <div>
+                    <div class="user-name" id="userName">--</div>
+                    <div style="color: #999; font-size: 14px;">ID: <span id="userIdDisplay">--</span></div>
+                </div>
+                <button class="logout-btn" onclick="logout()">退出</button>
+            </div>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="statGpa">0</div>
+                    <div class="stat-label">当前绩点</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statDrawn" style="color: #27ae60;">0</div>
+                    <div class="stat-label">已抽取</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statCount" style="color: #9b59b6;">0</div>
+                    <div class="stat-label">抽奖次数</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 盲盒 -->
+        <div id="drawCard" class="card hidden">
+            <div class="blindbox-container">
+                <div class="blindbox" id="blindbox" onclick="draw()">
+                    <div class="blindbox-icon">🎁</div>
+                    <div class="blindbox-text">点击抽奖</div>
+                </div>
+            </div>
+            <div id="result" class="result">
+                <div class="result-gpa">+<span id="resultGpa">0</span> 绩点</div>
+                <div class="result-text">恭喜获得 <span id="resultText">0</span> 绩点！</div>
+            </div>
+        </div>
+        
+        <!-- 概率说明 -->
+        <div id="probCard" class="card hidden">
+            <h3 style="text-align: center; margin-bottom: 15px;">📊 抽奖概率</h3>
+            <div class="prob-table">
+                <div class="prob-item"><div class="prob-gpa">1</div><div class="prob-rate">15%</div></div>
+                <div class="prob-item"><div class="prob-gpa">2</div><div class="prob-rate">15%</div></div>
+                <div class="prob-item"><div class="prob-gpa">3</div><div class="prob-rate">12%</div></div>
+                <div class="prob-item"><div class="prob-gpa">4</div><div class="prob-rate">10%</div></div>
+                <div class="prob-item"><div class="prob-gpa">5</div><div class="prob-rate">10%</div></div>
+                <div class="prob-item"><div class="prob-gpa">6</div><div class="prob-rate">8%</div></div>
+                <div class="prob-item"><div class="prob-gpa">7</div><div class="prob-rate">7%</div></div>
+                <div class="prob-item"><div class="prob-gpa">8</div><div class="prob-rate">6%</div></div>
+                <div class="prob-item"><div class="prob-gpa">9</div><div class="prob-rate">5%</div></div>
+                <div class="prob-item"><div class="prob-gpa">10</div><div class="prob-rate">4%</div></div>
+                <div class="prob-item"><div class="prob-gpa">12</div><div class="prob-rate">3%</div></div>
+                <div class="prob-item"><div class="prob-gpa">15</div><div class="prob-rate">2%</div></div>
+                <div class="prob-item" style="grid-column: span 2;"><div class="prob-gpa">20</div><div class="prob-rate">1%</div></div>
+            </div>
+        </div>
+        
+        <!-- 历史记录 -->
+        <div id="historyCard" class="card hidden">
+            <h3 style="text-align: center; margin-bottom: 15px;">📜 抽奖记录</h3>
+            <div class="history-list" id="historyList">
+                <div style="text-align: center; color: #999;">暂无记录</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        
+        // 登录
+        async function login() {
+            const userId = document.getElementById('userId').value.trim();
+            if (!userId) {
+                alert('请输入精网号');
+                return;
+            }
+            
+            try {
+                // 先尝试获取用户
+                let res = await fetch(`/api/users/${userId}`);
+                let user;
+                
+                if (res.ok) {
+                    user = await res.json();
+                } else {
+                    // 用户不存在，创建新用户
+                    const name = prompt('首次登录，请输入您的姓名：');
+                    if (!name) return;
+                    
+                    res = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: userId, name, gpa: 0 })
+                    });
+                    
+                    if (!res.ok) {
+                        alert('创建用户失败');
+                        return;
+                    }
+                    
+                    const data = await res.json();
+                    user = data.user;
+                }
+                
+                currentUser = user;
+                localStorage.setItem('blindboxUserId', userId);
+                showMain();
+                loadHistory();
+            } catch (err) {
+                console.error('登录失败:', err);
+                alert('登录失败，请重试');
+            }
+        }
+        
+        // 显示主界面
+        function showMain() {
+            document.getElementById('loginCard').classList.add('hidden');
+            document.getElementById('userCard').classList.remove('hidden');
+            document.getElementById('drawCard').classList.remove('hidden');
+            document.getElementById('probCard').classList.remove('hidden');
+            document.getElementById('historyCard').classList.remove('hidden');
+            
+            updateDisplay();
+        }
+        
+        // 更新显示
+        function updateDisplay() {
+            if (!currentUser) return;
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userIdDisplay').textContent = currentUser.id;
+            document.getElementById('statGpa').textContent = currentUser.gpa || 0;
+            document.getElementById('statDrawn').textContent = currentUser.drawnGpa || 0;
+            document.getElementById('statCount').textContent = currentUser.drawCount || 0;
+        }
+        
+        // 抽奖
+        async function draw() {
+            if (!currentUser) return;
+            
+            const box = document.getElementById('blindbox');
+            const result = document.getElementById('result');
+            
+            result.classList.remove('show');
+            box.classList.add('shaking');
+            box.style.pointerEvents = 'none';
+            
+            try {
+                const res = await fetch('/api/draw', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUser.id })
+                });
+                
+                const data = await res.json();
+                
+                setTimeout(() => {
+                    box.classList.remove('shaking');
+                    box.style.pointerEvents = 'auto';
+                    
+                    if (data.success) {
+                        document.getElementById('resultGpa').textContent = data.prize;
+                        document.getElementById('resultText').textContent = data.prize;
+                        result.classList.add('show');
+                        
+                        currentUser = data.user;
+                        updateDisplay();
+                        addHistory(data.prize);
+                    }
+                }, 1500);
+            } catch (err) {
+                box.classList.remove('shaking');
+                box.style.pointerEvents = 'auto';
+                alert('抽奖失败');
+            }
+        }
+        
+        // 添加历史记录
+        function addHistory(gpa) {
+            const list = document.getElementById('historyList');
+            const time = new Date().toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerHTML = `
+                <span class="history-gpa">+${gpa} 绩点</span>
+                <span class="history-time">${time}</span>
+            `;
+            
+            if (list.children[0]?.textContent === '暂无记录') {
+                list.innerHTML = '';
+            }
+            
+            list.insertBefore(item, list.firstChild);
+        }
+        
+        // 加载历史
+        async function loadHistory() {
+            if (!currentUser) return;
+            
+            try {
+                const res = await fetch(`/api/history/${currentUser.id}`);
+                const history = await res.json();
+                
+                const list = document.getElementById('historyList');
+                if (history.length === 0) {
+                    list.innerHTML = '<div style="text-align: center; color: #999;">暂无记录</div>';
+                    return;
+                }
+                
+                list.innerHTML = history.map(h => `
+                    <div class="history-item">
+                        <span class="history-gpa">+${h.prizeGpa} 绩点</span>
+                        <span class="history-time">${new Date(h.timestamp).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('加载历史失败:', err);
+            }
+        }
+        
+        // 退出
+        function logout() {
+            localStorage.removeItem('blindboxUserId');
+            currentUser = null;
+            location.reload();
+        }
+        
+        // 自动登录
+        async function autoLogin() {
+            const savedId = localStorage.getItem('blindboxUserId');
+            if (!savedId) return;
+            
+            try {
+                const res = await fetch(`/api/users/${savedId}`);
+                if (res.ok) {
+                    currentUser = await res.json();
+                    showMain();
+                    loadHistory();
+                }
+            } catch (err) {
+                console.error('自动登录失败:', err);
+            }
+        }
+        
+        // 监听回车
+        document.getElementById('userId')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+        
+        // 页面加载
+        autoLogin();
+    </script>
+</body>
+</html>

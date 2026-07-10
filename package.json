@@ -1,0 +1,12 @@
+{
+  "name": "blindbox-web",
+  "version": "1.0.0",
+  "description": "绩点盲盒抽奖网页",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
